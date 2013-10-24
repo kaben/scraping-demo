@@ -13,6 +13,6 @@ NEWSPIDER_MODULE = 'finance.spiders'
 DOWNLOAD_DELAY = 1
 
 # Crawl responsibly by identifying yourself (and your website) on the user-agent
-#USER_AGENT = 'finance (+http://www.yourdomain.com)'
+USER_AGENT = "Finance bot by Kaben Nanlohy (+kaben.nanlohy@gmail.com)"
 
 SQLALCHEMY_URL = "sqlite:///finance.sqlitedb"
