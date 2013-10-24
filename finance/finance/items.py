@@ -10,6 +10,11 @@ class GoogleSectorItem(Item):
   catid = Field()
   parent_catid = Field()
 
+class GoogleCompanyItem(Item):
+  name = Field()
+  stock_symbol = Field()
+  sector_catid = Field()
+
 class FinanceItem(Item):
     # define the fields for your item here like:
     # name = Field()
