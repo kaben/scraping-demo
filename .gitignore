@@ -1,0 +1,20 @@
+# VIM swapfiles.
+*.sw?
+
+# Byte-compiled Python.
+*.py?
+
+# SQLite database stuff.
+databases/*
+*.db
+*.table
+*.sqlite*
+
+# Web sessions.
+sessions/*
+
+# Logs.
+*.log
+
+# Error tickets.
+errors/*
