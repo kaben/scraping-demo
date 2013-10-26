@@ -15,4 +15,10 @@ DOWNLOAD_DELAY = 1
 # Crawl responsibly by identifying yourself (and your website) on the user-agent
 USER_AGENT = "Finance bot by Kaben Nanlohy (+kaben.nanlohy@gmail.com)"
 
+ITEM_PIPELINES = [
+  "finance.pipelines.FinanceDbPipeline",
+]
+
 SQLALCHEMY_URL = "sqlite:///finance.sqlitedb"
+
+LOG_FILE = "scrapy.log"

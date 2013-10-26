@@ -8,6 +8,7 @@ from finance.items import GoogleCompanyItem, GoogleSectorItem
 from scrapy.http import Request
 from scrapy.selector import HtmlXPathSelector
 from scrapy.spider import BaseSpider
+from scrapy import log
 
 from urlparse import parse_qs, urlparse
 
@@ -36,9 +37,10 @@ class GoogleFinanceNameSpider(BaseSpider):
     catids = [get_catid_from_url(link) for link in links]
     for name, link, catid in zip(names, links, catids):
       # The first time we scrape the sector's name, the name is often
-      # abbreviated. But then we request a visit to a page dedicated to that
-      # sector, where we can scrape its full, unabbreviated name.
-      yield GoogleSectorItem(name=name, catid=catid, parent_catid=parent_catid)
+      # abbreviated, so we discard it. But then we request a visit to a page
+      # dedicated to that sector, where we can scrape its full, unabbreviated
+      # name. Then we can update the name in the database.
+      yield GoogleSectorItem(catid=catid, parent_catid=parent_catid)
       yield Request("https://www.google.com{}".format(link), callback=self.parse_sector_page)
 
   def process_companies(self, companies, sector_catid):
@@ -64,8 +66,9 @@ class GoogleFinanceNameSpider(BaseSpider):
     companies = hxs.select('//table[@id="main"]//td[@align="right"]/a')
     for x in self.process_companies(companies, parent_catid): yield x
     # Scrape link to next page for sector.
-    next_page_link = hxs.select('//td[@class="nav_b"]//a/@href').extract()[0]
-    yield Request(next_page_link, callback=self.parse_next_sector_page)
+    next_page_link = hxs.select('//td[@class="nav_b"]//a/@href').extract()
+    if next_page_link:
+      yield Request(next_page_link[0], callback=self.parse_next_sector_page)
     # Scrape all child sectors on page.
     sectors = hxs.select('//div[@class="sfe-section"]//a')
     for x in self.process_sectors(sectors, parent_catid): yield x
@@ -78,5 +81,6 @@ class GoogleFinanceNameSpider(BaseSpider):
     companies = hxs.select('//table[@id="main"]//td[@align="right"]/a')
     for x in self.process_companies(companies, parent_catid): yield x
     # Scrape link to next page for sector.
-    next_page_link = hxs.select('//td[@class="nav_b"]//a/@href').extract()[0]
-    yield Request(next_page_link, callback=self.parse_next_sector_page)
+    next_page_link = hxs.select('//td[@class="nav_b"]//a/@href').extract()
+    if next_page_link:
+      yield Request(next_page_link[0], callback=self.parse_next_sector_page)
