@@ -32,6 +32,8 @@ class GoogleFinanceNameSpider(BaseSpider):
   start_urls = ["https://www.google.com/finance"]
 
   def process_sectors(self, sectors, parent_catid):
+    items = list()
+    requests = list()
     names = sectors.select('text()').extract()
     links = sectors.select('@href').extract()
     catids = [get_catid_from_url(link) for link in links]
@@ -40,47 +42,57 @@ class GoogleFinanceNameSpider(BaseSpider):
       # abbreviated, so we discard it. But then we request a visit to a page
       # dedicated to that sector, where we can scrape its full, unabbreviated
       # name. Then we can update the name in the database.
-      yield GoogleSectorItem(catid=catid, parent_catid=parent_catid)
-      yield Request("https://www.google.com{}".format(link), callback=self.parse_sector_page)
+      items.append(GoogleSectorItem(catid=catid, parent_catid=parent_catid))
+      requests.append(Request("https://www.google.com{}".format(link), callback=self.parse_sector_page))
+    return items, requests
 
   def process_companies(self, companies, sector_catid):
+    items = list()
     names = companies.select('text()').extract()
     links = companies.select('@href').extract()
     stock_symbols = [get_stock_symbol_from_url(link) for link in links]
     for name, link, stock_symbol in zip(names, links, stock_symbols):
-      yield GoogleCompanyItem(name=name, stock_symbol=stock_symbol, sector_catid=sector_catid)
+      items.append(GoogleCompanyItem(name=name, stock_symbol=stock_symbol, sector_catid=sector_catid))
+    return items
 
   def parse(self, response):
     hxs = HtmlXPathSelector(response)
     # Scrape all child sectors on page.
     sectors = hxs.select('//div[@id="secperf"]//a')
-    return self.process_sectors(sectors, parent_catid=None)
+    items, requests = self.process_sectors(sectors, parent_catid=None)
+    return items + requests
 
   def parse_sector_page(self, response):
+    items = list()
+    requests = list()
     hxs = HtmlXPathSelector(response)
     # Scrape parent's catid and full, unabbreviated name.
     parent_catid = get_catid_from_url(response.request.url)
     parent_name = hxs.select("//title/text()").extract()[0].split(" - ")[0]
-    yield GoogleSectorItem(name=parent_name, catid=parent_catid)
+    items.append(GoogleSectorItem(name=parent_name, catid=parent_catid))
     # Scrape all company names on page.
     companies = hxs.select('//table[@id="main"]//td[@align="right"]/a')
-    for x in self.process_companies(companies, parent_catid): yield x
+    items.extend(self.process_companies(companies, parent_catid))
     # Scrape link to next page for sector.
     next_page_link = hxs.select('//td[@class="nav_b"]//a/@href').extract()
     if next_page_link:
-      yield Request(next_page_link[0], callback=self.parse_next_sector_page)
+      requests.append(Request(next_page_link[0], callback=self.parse_next_sector_page))
     # Scrape all child sectors on page.
     sectors = hxs.select('//div[@class="sfe-section"]//a')
-    for x in self.process_sectors(sectors, parent_catid): yield x
+    child_items, child_requests = self.process_sectors(sectors, parent_catid)
+    return items + child_items + requests + child_requests
 
   def parse_next_sector_page(self, response):
+    items = list()
+    requests = list()
     hxs = HtmlXPathSelector(response)
     # Scrape parent's catid.
     parent_catid = get_catid_from_url(response.request.url)
     # Scrape all company names on page.
     companies = hxs.select('//table[@id="main"]//td[@align="right"]/a')
-    for x in self.process_companies(companies, parent_catid): yield x
+    items.extend(self.process_companies(companies, parent_catid))
     # Scrape link to next page for sector.
     next_page_link = hxs.select('//td[@class="nav_b"]//a/@href').extract()
     if next_page_link:
-      yield Request(next_page_link[0], callback=self.parse_next_sector_page)
+      requests.append(Request(next_page_link[0], callback=self.parse_next_sector_page))
+    return items + requests
