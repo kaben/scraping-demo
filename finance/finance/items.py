@@ -16,6 +16,20 @@ class GoogleCompanyItem(Item):
   sector_catid = Field()
 
 class FinanceItem(Item):
-    # define the fields for your item here like:
-    # name = Field()
-    pass
+  stock_symbol = Field()
+  period_ending = Field()
+  duration = Field()
+  sales = Field()
+  cost_of_goods_sold = Field()
+  net_income = Field()
+  shareholder_net_income = Field()
+  cash_and_equivalents = Field()
+  current_assets = Field()
+  short_term_debt = Field()
+  accounts_payable = Field()
+  other_current_liabilities = Field()
+  current_liabilities = Field()
+  long_term_debt = Field()
+  operating_cash_flow = Field()
+  capital_expenditures = Field()
+  eps = Field()

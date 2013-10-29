@@ -5,8 +5,9 @@
 
 from finance import settings
 from finance.items import GoogleCompanyItem, GoogleSectorItem
+from finance.models import orm
 
-from scrapy.http import Request
+from scrapy.http import Request, FormRequest
 from scrapy.selector import HtmlXPathSelector
 from scrapy.spider import BaseSpider
 from scrapy import log
@@ -102,3 +103,36 @@ class GoogleFinanceSectorSpider(BaseSpider):
     if next_page_link:
       requests.append(Request(next_page_link[0], callback=self.parse_next_sector_page))
     return items + requests
+
+
+class NasdaqCompanyFinancialsSpider(BaseSpider):
+  name = "nasdaq_company_financials"
+  fundamentals_url = "http://fundamentals.nasdaq.com/nasdaq_fundamentals.asp"
+  redpage_url = "http://fundamentals.nasdaq.com/redpage.asp"
+
+  def start_requests(self):
+    #company_query = orm.session.query(orm.GoogleCompany)
+    company_query = orm.session.query(orm.GoogleCompany).filter(orm.GoogleCompany.stock_symbol.like("%:AAPL%"))
+    durations = ("1","2")
+    financials_parsers = (self.parse_income_statement, self.parse_balance_sheet, self.parse_cash_flow_statement)
+    for company in company_query:
+      stock = company.stock_symbol.split(':')[-1]
+      for duration in durations:
+        for doc_type, callback in enumerate(financials_parsers):
+          formdata = dict(NumPeriods = "100", Duration = duration, DocumentType = str(doc_type), selected = stock)
+          yield FormRequest(callback = callback, url = self.fundamentals_url, formdata = formdata, meta = formdata)
+      formdata = dict(selected = stock, page = "1")
+      yield FormRequest(callback = self.parse_eps, url = self.redpage_url, formdata = formdata, meta = formdata)
+
+  def parse_income_statement(self, response):
+    print "parse_income_statement", response, response.meta
+
+  def parse_balance_sheet(self, response):
+    print "parse_balance_sheet", response, response.meta
+
+  def parse_cash_flow_statement(self, response):
+    print "parse_cash_flow_statement", response, response.meta
+
+  def parse_eps(self, response):
+    print "parse_eps:", response, response.meta
+
