@@ -19,7 +19,8 @@ ITEM_PIPELINES = [
   "finance.pipelines.FinanceDbPipeline",
 ]
 
+LOG_FILE = "scrapy.log"
+
 #SQLALCHEMY_URL = "sqlite:///finance.sqlitedb"
 SQLALCHEMY_URL = "mysql://irrealis_finance:irrealis_finance@localhost/irrealis_finance"
-
-LOG_FILE = "scrapy.log"
+SCRAPE_COMPANIES_FROM_SECTORS = False

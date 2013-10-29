@@ -3,6 +3,7 @@
 # Please refer to the documentation for information on how to create and manage
 # your spiders.
 
+from finance import settings
 from finance.items import GoogleCompanyItem, GoogleSectorItem
 
 from scrapy.http import Request
@@ -68,15 +69,20 @@ class GoogleFinanceSectorSpider(BaseSpider):
     hxs = HtmlXPathSelector(response)
     # Scrape parent's catid and full, unabbreviated name.
     parent_catid = get_catid_from_url(response.request.url)
-    parent_name = hxs.select("//title/text()").extract()[0].split(" - ")[0]
+    page_title = hxs.select("//title/text()").extract()[0]
+
+    parent_name = u" - ".join(page_title.split(u" - ")[:-1])
     items.append(GoogleSectorItem(name=parent_name, catid=parent_catid))
-    # Scrape all company names on page.
-    companies = hxs.select('//table[@id="main"]//td[@align="right"]/a')
-    items.extend(self.process_companies(companies, parent_catid))
-    # Scrape link to next page for sector.
-    next_page_link = hxs.select('//td[@class="nav_b"]//a/@href').extract()
-    if next_page_link:
-      requests.append(Request(next_page_link[0], callback=self.parse_next_sector_page))
+
+    if settings.SCRAPE_COMPANIES_FROM_SECTORS:
+      # Scrape all company names on page.
+      companies = hxs.select('//table[@id="main"]//td[@align="right"]/a')
+      items.extend(self.process_companies(companies, parent_catid))
+      # Scrape link to next page for sector.
+      next_page_link = hxs.select('//td[@class="nav_b"]//a/@href').extract()
+      if next_page_link:
+        requests.append(Request(next_page_link[0], callback=self.parse_next_sector_page))
+
     # Scrape all child sectors on page.
     sectors = hxs.select('//div[@class="sfe-section"]//a')
     child_items, child_requests = self.process_sectors(sectors, parent_catid)
