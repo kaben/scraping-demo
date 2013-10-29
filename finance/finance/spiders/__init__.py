@@ -65,8 +65,12 @@ def get_row_data(rows):
   # On Nasdaq fundamentals, each row begins with a row title; get titles and
   # remaining data, if any.
   rows = [(row[0], row[1:]) for row in rows if row]
-  # Convert to a dictionary of row data, keyed by row title.
-  row_data_dict = dict((key, row_data) for (key, row_data) in rows if row_data)
+  # Convert to a list of row data keyed by row title.
+  rows = [(key, row_data) for (key, row_data) in rows if row_data]
+  return rows
+
+def get_fundamentals_row_data(rows):
+  row_data_dict = dict(get_row_data(rows))
   return row_data_dict
 
 
@@ -164,11 +168,12 @@ class NasdaqCompanyFinancialsSpider(BaseSpider):
       for duration in durations:
         for doc_type, callback in enumerate(financials_parsers):
           formdata = dict(num_periods = 100, duration = duration, doc_type = doc_type+1, stock = stock, stock_symbol = stock_symbol)
-          yield Request(self.fundamentals_fmt.format(**formdata), meta = formdata, callback=callback)
-      formdata = dict(selected = stock, page = 1, stock_symbol = stock_symbol)
-      #yield Request(self.redpage_fmt.format(**formdata), meta = formdata, callback=self.parse_redpage)
+          #yield Request(self.fundamentals_fmt.format(**formdata), meta = formdata, callback=callback)
+      formdata = dict(stock = stock, stock_symbol = stock_symbol, page = 1)
+      yield Request(self.redpage_fmt.format(**formdata), meta = formdata, callback=self.parse_eps_summary)
 
-  def parse_data_rows(self, response):
+
+  def parse_fundamentals_rows(self, response):
     hxs = HtmlXPathSelector(response)
     # Get multiplier infor from string of the form "... (values in 000's)".
     multiplier_string = hxs.select('//td[@class="bubblemiddle"]/text()').re(r"values in (\d*)'s")[0]
@@ -176,14 +181,17 @@ class NasdaqCompanyFinancialsSpider(BaseSpider):
     # Get all data rows, which have lots of whitespace formatting.
     rows = hxs.select('//table[@class="ipos"]//tr')
     # Clean up the rows, and extract row titles.
-    data_dict = get_row_data(rows)
+    data_dict = get_fundamentals_row_data(rows)
     return multiplier, data_dict
 
-  def parse_income_statement(self, response):
+  def get_common_fundamental_data(self, response):
     stock_symbol = response.meta["stock_symbol"]
     duration = response.meta["duration"]
-    mult, data_dict = self.parse_data_rows(response)
+    mult, data_dict = self.parse_fundamentals_rows(response)
+    return stock_symbol, duration, mult, data_dict
 
+  def parse_income_statement(self, response):
+    stock_symbol, duration, mult, data_dict = self.get_common_fundamental_data(response)
     income_statement_items = [
       FinancialStatementItem(
         stock_symbol = stock_symbol,
@@ -212,10 +220,7 @@ class NasdaqCompanyFinancialsSpider(BaseSpider):
       print income_statement_item
 
   def parse_balance_sheet(self, response):
-    stock_symbol = response.meta["stock_symbol"]
-    duration = response.meta["duration"]
-    mult, data_dict = self.parse_data_rows(response)
-
+    stock_symbol, duration, mult, data_dict = self.get_common_fundamental_data(response)
     balance_sheet_items = [
       FinancialStatementItem(
         stock_symbol = stock_symbol,
@@ -245,15 +250,12 @@ class NasdaqCompanyFinancialsSpider(BaseSpider):
     ]
 
     print "parse_balance_sheet:"
-    for balance_sheet_item in balance_sheet_items:
-      print "balance_sheet_items:"
-      print balance_sheet_item
+    for balance_sheet in balance_sheet_items:
+      print "balance_sheet:"
+      print balance_sheet
 
   def parse_cash_flow_statement(self, response):
-    stock_symbol = response.meta["stock_symbol"]
-    duration = response.meta["duration"]
-    mult, data_dict = self.parse_data_rows(response)
-
+    stock_symbol, duration, mult, data_dict = self.get_common_fundamental_data(response)
     cash_flow_statement_items = [
       FinancialStatementItem(
         stock_symbol = stock_symbol,
@@ -273,10 +275,40 @@ class NasdaqCompanyFinancialsSpider(BaseSpider):
     ]
 
     print "parse_cash_flow_statement:"
-    for cash_flow_statement_item in cash_flow_statement_items:
-      print "cash_flow_statement_items:"
-      print cash_flow_statement_item
+    for cash_flow_statement in cash_flow_statement_items:
+      print "cash_flow_statement:"
+      print cash_flow_statement
 
-  def parse_eps(self, response):
-    print "parse_eps:", response, response.meta
+  def parse_eps_summary(self, response):
+    stock_symbol = response.meta["stock_symbol"]
+    page = response.meta["page"]
+    hxs = HtmlXPathSelector(response)
+    # Get all data rows, which have lots of whitespace formatting.
+    rows = hxs.select('//table[@class="ipos"]//tr')
+    # Clean up the rows, and extract row titles.
+    data_rows = get_row_data(rows)
+    # Extract EPS data from rows.
+    data_rows = [row for (key, row) in data_rows if key == u"EPS"]
+    data_rows = [entry.split(u"\xa0") for row in data_rows for entry in row]
+    # Keep all EPS quarterly data, identified by date of period end.
+    data_rows = [(row[0], row[1]) for row in data_rows if 2 == len(row)]
+    # Convert EPS to number, and date string to date.
+    data_rows = [(Decimal(eps), datetime.strptime(date, "(%m/%d/%Y)").date()) for eps, date in data_rows]
+    eps_summary_items = [
+      FinancialStatementItem(
+        stock_symbol = stock_symbol,
+        duration = 1,
+        period_ending = row[1],
+        eps = row[0],
+      )
+      for row in data_rows
+    ]
+    print "parse_eps: data_rows:"
+    for eps_summary in eps_summary_items:
+      print "eps_summary:"
+      print eps_summary
+    if eps_summary_items:
+      formdata = response.meta.copy()
+      formdata["page"] = page+1
+      yield Request(self.redpage_fmt.format(**formdata), meta = formdata, callback=self.parse_eps_summary)
 
