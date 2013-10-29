@@ -18,8 +18,8 @@ def upgrade():
   op.create_table(
     "google_companies",
     sa.Column("id", sa.Integer, primary_key=True),
-    sa.Column("stock_symbol", sa.String),
-    sa.Column("name", sa.String),
+    sa.Column("stock_symbol", sa.String(64)),
+    sa.Column("name", sa.String(512)),
     sa.Column("sector_id", sa.Integer, sa.ForeignKey("google_sectors.id")),
   )
 

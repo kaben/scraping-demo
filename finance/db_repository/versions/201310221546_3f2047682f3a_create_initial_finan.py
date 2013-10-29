@@ -16,19 +16,19 @@ import sqlalchemy as sa
 
 def upgrade():
   op.create_table(
+    "google_sectors",
+    sa.Column("id", sa.Integer, primary_key=True),
+    sa.Column("catid", sa.String(64)),
+    sa.Column("name", sa.String(512)),
+  )
+  op.create_table(
     "google_sectors_assoc",
     sa.Column("id", sa.Integer, primary_key=True),
     sa.Column("parent_id", sa.Integer, sa.ForeignKey("google_sectors.id")),
     sa.Column("child_id", sa.Integer, sa.ForeignKey("google_sectors.id")),
   )
-  op.create_table(
-    "google_sectors",
-    sa.Column("id", sa.Integer, primary_key=True),
-    sa.Column("catid", sa.String),
-    sa.Column("name", sa.String),
-  )
 
 def downgrade():
-  op.drop_table("google_sectors")
   op.drop_table("google_sectors_assoc")
+  op.drop_table("google_sectors")
 
