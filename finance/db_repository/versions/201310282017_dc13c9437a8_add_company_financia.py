@@ -24,7 +24,7 @@ def upgrade():
     # The statement's duration (1:quarterly, 2:annual) 
     sa.Column("duration", sa.Integer),
 
-    # Data from income statements:
+    # Data from income statement:
     # Sales, aka. total revenue
     sa.Column("sales", sa.Numeric),
     # Cost of goods sold, aka. cost of revenue, total cost of revenue
@@ -34,8 +34,10 @@ def upgrade():
     # Sharehold net income, aka. net income applicable to common shareholders,
     # income available to common incl. extra items
     sa.Column("shareholder_net_income", sa.Numeric),
+    # Multiplier string from income statement
+    sa.Column("income_statement_multiplier", sa.Numeric),
 
-    # Data from balance sheets:
+    # Data from balance sheet:
     # Cash and equivalents, aka. cash and cash equivalents
     sa.Column("cash_and_equivalents", sa.Numeric),
     # Current assets, aka. total current assets
@@ -51,12 +53,16 @@ def upgrade():
     sa.Column("current_liabilities", sa.Numeric),
     # Long term debut
     sa.Column("long_term_debt", sa.Numeric),
+    # Multiplier string from balance sheet
+    sa.Column("balance_sheet_multiplier", sa.Numeric),
 
-    # Data from cash flow statements:
+    # Data from cash flow statement:
     # Operating cash flow, aka. net operating cash flow
     sa.Column("operating_cash_flow", sa.Numeric),
     # Capital expenditures
     sa.Column("capital_expenditures", sa.Numeric),
+    # Multiplier string from cash flow statement
+    sa.Column("cash_flow_statement_multiplier", sa.Numeric),
 
     # Data from revenue / EPS summary:
     # Earnings per share

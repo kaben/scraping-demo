@@ -15,14 +15,20 @@ class GoogleCompanyItem(Item):
   stock_symbol = Field()
   sector_catid = Field()
 
-class FinanceItem(Item):
+class FinancialStatementItem(Item):
   stock_symbol = Field()
-  period_ending = Field()
   duration = Field()
+  period_ending = Field()
+
+  # Data from income statement:
+  income_statement_multiplier = Field()
   sales = Field()
   cost_of_goods_sold = Field()
   net_income = Field()
   shareholder_net_income = Field()
+
+  # Data from balance sheet:
+  balance_sheet_multiplier = Field()
   cash_and_equivalents = Field()
   current_assets = Field()
   short_term_debt = Field()
@@ -30,6 +36,11 @@ class FinanceItem(Item):
   other_current_liabilities = Field()
   current_liabilities = Field()
   long_term_debt = Field()
+
+  # Data from cash flow statement:
+  cash_flow_statement_multiplier = Field()
   operating_cash_flow = Field()
   capital_expenditures = Field()
+
+  # Data from revenue / EPS summary:
   eps = Field()
