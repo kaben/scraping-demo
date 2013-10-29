@@ -15,11 +15,6 @@ fileConfig(config.config_file_name)
 # for 'autogenerate' support
 # from myapp import mymodel
 # target_metadata = mymodel.Base.metadata
-import os, sys
-finance_dir = os.path.abspath(os.path.join(os.path.basename(__file__), ".."))
-if not finance_dir in sys.path: sys.path.insert(1, finance_dir)
-import finance.models
-#target_metadata = finance.models.orm.Base.metadata
 target_metadata = None
 
 # other values from the config, defined by the needs of env.py,
