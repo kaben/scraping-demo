@@ -10,8 +10,8 @@ orm_defs = dict(
     children = relationship(
       "GoogleSector",
       secondary = "google_sectors_assoc",
-      primaryjoin = "google_sectors.c.id==google_sectors_assoc.c.parent_id",
-      secondaryjoin = "google_sectors.c.id==google_sectors_assoc.c.child_id",
+      primaryjoin = "GoogleSector.id==google_sectors_assoc.c.parent_id",
+      secondaryjoin = "GoogleSector.id==google_sectors_assoc.c.child_id",
       backref="parents",
     ),
   ),
@@ -19,13 +19,12 @@ orm_defs = dict(
     __tablename__ = "google_companies",
     sector = relationship(
       "GoogleSector",
-      primaryjoin = "google_companies.c.sector_id==google_sectors.c.id",
+      primaryjoin = "GoogleCompany.sector_id==GoogleSector.id",
     ),
     industry = relationship(
       "GoogleSector",
-      primaryjoin = "google_companies.c.industry_id==google_sectors.c.id",
+      primaryjoin = "GoogleCompany.industry_id==GoogleSector.id",
     ),
-  ),
 )
 orm = ORM(orm_defs, SQLALCHEMY_URL)
 
