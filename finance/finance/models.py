@@ -25,6 +25,19 @@ orm_defs = dict(
       "GoogleSector",
       primaryjoin = "GoogleCompany.industry_id==GoogleSector.id",
     ),
+    financials = relationship("CompanyFinancials", backref="company"),
+    quarterly_financials = relationship(
+      "CompanyFinancials",
+      primaryjoin = "and_(GoogleCompany.id==CompanyFinancials.company_id, CompanyFinancials.duration==1)",
+      order_by = "CompanyFinancials.period_ending",
+    ),
+    annual_financials = relationship(
+      "CompanyFinancials",
+      primaryjoin = "and_(GoogleCompany.id==CompanyFinancials.company_id, CompanyFinancials.duration==2)",
+      order_by = "CompanyFinancials.period_ending",
+    ),
+  ),
+  CompanyFinancials = dict(__tablename__ = "company_financials"),
 )
 orm = ORM(orm_defs, SQLALCHEMY_URL)
 
