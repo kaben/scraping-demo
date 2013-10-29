@@ -27,8 +27,8 @@ def get_stock_symbol_from_url(url):
   else: return None
 
 
-class GoogleFinanceNameSpider(BaseSpider):
-  name = "google_finance_names"
+class GoogleFinanceSectorSpider(BaseSpider):
+  name = "google_finance_sectors"
   start_urls = ["https://www.google.com/finance"]
 
   def process_sectors(self, sectors, parent_catid):
