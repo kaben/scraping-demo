@@ -51,8 +51,9 @@ def get_multiplier(multiplier_string):
 def get_date(date_string):
   return datetime.strptime(date_string, '%m/%d/%Y').date()
 
-def convert_date_row(row_data):
-  return [get_date(date_string) for date_string in row_data[1:]]
+def convert_date_row(row_data, duration):
+  if duration == 2: del row_data[0]
+  return [get_date(date_string) for date_string in row_data]
 
 def convert_dollar_row(row_data, multiplier):
   return [multiplier*get_decimal_from_dollars(dollar_string) for dollar_string in row_data]
@@ -156,19 +157,16 @@ class NasdaqCompanyFinancialsSpider(BaseSpider):
   redpage_fmt = "http://fundamentals.nasdaq.com/redpage.asp?selected={stock}&page={page}"
 
   def start_requests(self):
-    #company_query = orm.session.query(orm.GoogleCompany)
-    company_query = orm.session.query(orm.GoogleCompany).filter(orm.GoogleCompany.stock_symbol.like("%:AAPL%"))
-    #durations = (1, 2)
-    durations = (2,)
+    company_query = orm.session.query(orm.GoogleCompany)
+    durations = (1, 2)
     financials_parsers = (self.parse_income_statement, self.parse_balance_sheet, self.parse_cash_flow_statement)
-    #financials_parsers = (self.parse_income_statement, self.parse_balance_sheet)
     for company in company_query:
       stock_symbol = company.stock_symbol
       stock = stock_symbol.split(':')[-1]
       for duration in durations:
         for doc_type, callback in enumerate(financials_parsers):
           formdata = dict(num_periods = 100, duration = duration, doc_type = doc_type+1, stock = stock, stock_symbol = stock_symbol)
-          #yield Request(self.fundamentals_fmt.format(**formdata), meta = formdata, callback=callback)
+          yield Request(self.fundamentals_fmt.format(**formdata), meta = formdata, callback=callback)
       formdata = dict(stock = stock, stock_symbol = stock_symbol, page = 1)
       yield Request(self.redpage_fmt.format(**formdata), meta = formdata, callback=self.parse_eps_summary)
 
@@ -187,12 +185,14 @@ class NasdaqCompanyFinancialsSpider(BaseSpider):
   def get_common_fundamental_data(self, response):
     stock_symbol = response.meta["stock_symbol"]
     duration = response.meta["duration"]
+    period_ending_dict = {1:"Quarter Ending:", 2:"Period Ending:"}
+    period_ending_key = period_ending_dict[duration]
     mult, data_dict = self.parse_fundamentals_rows(response)
-    return stock_symbol, duration, mult, data_dict
+    return stock_symbol, duration, period_ending_key, mult, data_dict
 
   def parse_income_statement(self, response):
-    stock_symbol, duration, mult, data_dict = self.get_common_fundamental_data(response)
-    income_statement_items = [
+    stock_symbol, duration, period_ending_key, mult, data_dict = self.get_common_fundamental_data(response)
+    return [
       FinancialStatementItem(
         stock_symbol = stock_symbol,
         duration = duration,
@@ -205,7 +205,7 @@ class NasdaqCompanyFinancialsSpider(BaseSpider):
         shareholder_net_income = row[4],
       )
       for row in zip(
-        convert_date_row(data_dict["Period Ending:"]),
+        convert_date_row(data_dict[period_ending_key], duration),
 
         convert_dollar_row(data_dict["Total Revenue"], mult),
         convert_dollar_row(data_dict["Cost of Revenue"], mult),
@@ -214,14 +214,9 @@ class NasdaqCompanyFinancialsSpider(BaseSpider):
       )
     ]
 
-    print "parse_income_statement:"
-    for income_statement_item in income_statement_items:
-      print "income_statement_item:"
-      print income_statement_item
-
   def parse_balance_sheet(self, response):
-    stock_symbol, duration, mult, data_dict = self.get_common_fundamental_data(response)
-    balance_sheet_items = [
+    stock_symbol, duration, period_ending_key, mult, data_dict = self.get_common_fundamental_data(response)
+    return [
       FinancialStatementItem(
         stock_symbol = stock_symbol,
         duration = duration,
@@ -237,7 +232,7 @@ class NasdaqCompanyFinancialsSpider(BaseSpider):
         long_term_debt = row[7],
       )
       for row in zip(
-        convert_date_row(data_dict["Period Ending:"]),
+        convert_date_row(data_dict[period_ending_key], duration),
 
         convert_dollar_row(data_dict["Cash and Cash Equivalents"], mult),
         convert_dollar_row(data_dict["Total Current Assets"], mult),
@@ -249,14 +244,9 @@ class NasdaqCompanyFinancialsSpider(BaseSpider):
       )
     ]
 
-    print "parse_balance_sheet:"
-    for balance_sheet in balance_sheet_items:
-      print "balance_sheet:"
-      print balance_sheet
-
   def parse_cash_flow_statement(self, response):
-    stock_symbol, duration, mult, data_dict = self.get_common_fundamental_data(response)
-    cash_flow_statement_items = [
+    stock_symbol, duration, period_ending_key, mult, data_dict = self.get_common_fundamental_data(response)
+    return [
       FinancialStatementItem(
         stock_symbol = stock_symbol,
         duration = duration,
@@ -267,17 +257,12 @@ class NasdaqCompanyFinancialsSpider(BaseSpider):
         capital_expenditures = row[2],
       )
       for row in zip(
-        convert_date_row(data_dict["Period Ending:"]),
+        convert_date_row(data_dict[period_ending_key], duration),
 
         convert_dollar_row(data_dict["Net Cash Flow-Operating"], mult),
         convert_dollar_row(data_dict["Capital Expenditures"], mult),
       )
     ]
-
-    print "parse_cash_flow_statement:"
-    for cash_flow_statement in cash_flow_statement_items:
-      print "cash_flow_statement:"
-      print cash_flow_statement
 
   def parse_eps_summary(self, response):
     stock_symbol = response.meta["stock_symbol"]
@@ -294,7 +279,7 @@ class NasdaqCompanyFinancialsSpider(BaseSpider):
     data_rows = [(row[0], row[1]) for row in data_rows if 2 == len(row)]
     # Convert EPS to number, and date string to date.
     data_rows = [(Decimal(eps), datetime.strptime(date, "(%m/%d/%Y)").date()) for eps, date in data_rows]
-    eps_summary_items = [
+    return_items = [
       FinancialStatementItem(
         stock_symbol = stock_symbol,
         duration = 1,
@@ -303,12 +288,9 @@ class NasdaqCompanyFinancialsSpider(BaseSpider):
       )
       for row in data_rows
     ]
-    print "parse_eps: data_rows:"
-    for eps_summary in eps_summary_items:
-      print "eps_summary:"
-      print eps_summary
-    if eps_summary_items:
+    if return_items:
       formdata = response.meta.copy()
       formdata["page"] = page+1
-      yield Request(self.redpage_fmt.format(**formdata), meta = formdata, callback=self.parse_eps_summary)
+      return_items.append(Request(self.redpage_fmt.format(**formdata), meta=formdata, callback=self.parse_eps_summary))
+    return return_items
 

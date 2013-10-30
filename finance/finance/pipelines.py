@@ -8,7 +8,7 @@
 # Don't forget to add your pipeline to the ITEM_PIPELINES setting
 # See: http://doc.scrapy.org/en/latest/topics/item-pipeline.html
 
-from finance.items import GoogleSectorItem, GoogleCompanyItem
+from finance.items import FinancialStatementItem, GoogleSectorItem, GoogleCompanyItem
 from finance.models import orm
 
 from scrapy import log
@@ -48,6 +48,19 @@ class FinanceDbPipeline(PipelineBaseORM):
         if not parent_sector in sector.parents:
           log.msg(u"Adding parent {} to child {}".format(parent_sector, sector))
           sector.parents.append(parent_sector)
+      self.orm.session.commit()
+
+    elif type(item) == FinancialStatementItem:
+      stock_symbol = item["stock_symbol"]
+      duration = item["duration"]
+      period_ending = item["period_ending"]
+      company = self.orm.get_or_create(self.orm.GoogleCompany, stock_symbol=stock_symbol)
+      financial_statement = self.orm.get_or_create(self.orm.CompanyFinancials, company=company, period_ending=period_ending, duration=duration)
+      # There's no stock_symbol attribute in the database table; there's a
+      # related company instead; so we need to remove the attribute from a copy
+      # of the item.
+      del item["stock_symbol"]
+      self.update_attrs_with_notes(financial_statement, **item)
       self.orm.session.commit()
 
     else: log.msg(u"unknown item type {} for item {}".format(type(item), item), level=log.WARNING)
