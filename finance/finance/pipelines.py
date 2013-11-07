@@ -8,7 +8,7 @@
 # Don't forget to add your pipeline to the ITEM_PIPELINES setting
 # See: http://doc.scrapy.org/en/latest/topics/item-pipeline.html
 
-from finance.items import FinancialStatementItem, GoogleSectorItem, GoogleCompanyItem
+from finance.items import FinancialStatementItem, GoogleSectorItem, GoogleCompanyItem, GenericIncomeStatement, GenericBalanceSheet, GenericCashFlowStatement, GenericEpsSummary
 from finance.models import orm
 
 from scrapy import log
@@ -62,6 +62,15 @@ class FinanceDbPipeline(PipelineBaseORM):
       del item["stock_symbol"]
       self.update_attrs_with_notes(financial_statement, **item)
       self.orm.session.commit()
+
+    elif type(item) == GenericIncomeStatement:
+      print "GenericIncomeStatement:", item
+    elif type(item) == GenericBalanceSheet:
+      print "GenericBalanceSheet:", item
+    elif type(item) == GenericCashFlowStatement:
+      print "GenericCashFlowStatement:", item
+    elif type(item) == GenericEpsSummary:
+      print "GenericEpsSummary:", item
 
     else: log.msg(u"unknown item type {} for item {}".format(type(item), item), level=log.WARNING)
 
