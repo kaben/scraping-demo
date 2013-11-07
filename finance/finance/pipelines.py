@@ -66,22 +66,9 @@ class FinanceDbPipeline(PipelineBaseORM):
       self.update_attrs_with_notes(financial_statement, **item)
       self.orm.session.commit()
 
-    elif type(item) == GenericIncomeStatement:
+    elif type(item) in (GenericIncomeStatement, GenericBalanceSheet, GenericCashFlowStatement, GenericEpsSummary):
       item_dict = dict(item)
       self.mongo_db.financials.insert(item_dict)
-      #print "GenericIncomeStatement:", item_dict
-    elif type(item) == GenericBalanceSheet:
-      item_dict = dict(item)
-      self.mongo_db.financials.insert(item_dict)
-      #print "GenericBalanceSheet:", item_dict
-    elif type(item) == GenericCashFlowStatement:
-      item_dict = dict(item)
-      self.mongo_db.financials.insert(item_dict)
-      #print "GenericCashFlowStatement:", item_dict
-    elif type(item) == GenericEpsSummary:
-      item_dict = dict(item)
-      self.mongo_db.financials.insert(item_dict)
-      #print "GenericEpsSummary:", item_dict
 
     else: log.msg(u"unknown item type {} for item {}".format(type(item), item), level=log.WARNING)
 

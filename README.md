@@ -7,7 +7,8 @@ Notes:
 ======
 
 I've just quickly hacked together a generic financial statements scraper using
-MongoDB as a datastore. Need to refactor hacks before proceeding further.
+MongoDB as a datastore. Partially refactored to reduce code duplication; need
+further refactoring before proceeding.
 
 PythonAnywhere doesn't appear to support MongoDB; maybe I can do data analysis
 offline, and push analysis results to SQL? or setup financials site on Heroku

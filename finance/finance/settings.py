@@ -19,7 +19,7 @@ ITEM_PIPELINES = [
   "finance.pipelines.FinanceDbPipeline",
 ]
 
-#LOG_FILE = "scrapy.log"
+LOG_FILE = "scrapy.log"
 #LOG_LEVEL = "WARNING"
 
 #SQLALCHEMY_URL = "sqlite:///finance.sqlitedb"

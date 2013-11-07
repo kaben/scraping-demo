@@ -338,38 +338,26 @@ class GenericNasdaqCompanyFinancialsSpider(BaseSpider):
     mult, data_dict = self.parse_fundamentals_rows(response)
     return stock_symbol, duration, period_ending_key, mult, data_dict
 
+  def handle_generic_statement(self, response, generic_class):
+    stock_symbol, duration, period_ending_key, mult, data = self.get_common_fundamental_data(response)
+    if data:
+      return generic_class(
+        stock_symbol = stock_symbol,
+        duration = duration,
+        period_ending_key = period_ending_key,
+        mult = mult,
+        data = data,
+      )
+
   def parse_income_statement(self, response):
-    stock_symbol, duration, period_ending_key, mult, data = self.get_common_fundamental_data(response)
-    if data:
-      yield GenericIncomeStatement(
-        stock_symbol = stock_symbol,
-        duration = duration,
-        period_ending_key = period_ending_key,
-        mult = mult,
-        data = data,
-      )
-
+    item = self.handle_generic_statement(response, GenericIncomeStatement)
+    if item: yield item
   def parse_balance_sheet(self, response):
-    stock_symbol, duration, period_ending_key, mult, data = self.get_common_fundamental_data(response)
-    if data:
-      yield GenericBalanceSheet(
-        stock_symbol = stock_symbol,
-        duration = duration,
-        period_ending_key = period_ending_key,
-        mult = mult,
-        data = data,
-      )
-
+    item = self.handle_generic_statement(response, GenericBalanceSheet)
+    if item: yield item
   def parse_cash_flow_statement(self, response):
-    stock_symbol, duration, period_ending_key, mult, data = self.get_common_fundamental_data(response)
-    if data:
-      yield GenericCashFlowStatement(
-        stock_symbol = stock_symbol,
-        duration = duration,
-        period_ending_key = period_ending_key,
-        mult = mult,
-        data = data,
-      )
+    item = self.handle_generic_statement(response, GenericCashFlowStatement)
+    if item: yield item
 
   def parse_eps_summary(self, response):
     stock_symbol = response.meta["stock_symbol"]
