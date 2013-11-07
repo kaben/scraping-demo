@@ -20,8 +20,8 @@ ITEM_PIPELINES = [
 ]
 
 LOG_FILE = "scrapy.log"
-LOG_LEVEL = "WARNING"
+#LOG_LEVEL = "WARNING"
 
-#SQLALCHEMY_URL = "sqlite:///finance.sqlitedb"
-SQLALCHEMY_URL = "mysql://irrealis_finance:irrealis_finance@localhost/irrealis_finance"
-SCRAPE_COMPANIES_FROM_SECTORS = False
+SQLALCHEMY_URL = "sqlite:///finance.sqlitedb"
+#SQLALCHEMY_URL = "mysql://irrealis_finance:irrealis_finance@localhost/irrealis_finance"
+SCRAPE_COMPANIES_FROM_SECTORS = True

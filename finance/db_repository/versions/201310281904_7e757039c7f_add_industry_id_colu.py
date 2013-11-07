@@ -15,8 +15,8 @@ import sqlalchemy as sa
 
 
 def upgrade():
-  op.add_column("google_companies", sa.Column("industry_id", sa.Integer, sa.ForeignKey("google_sectors.id")))
+  pass
 
 
 def downgrade():
-  op.drop_column("google_companies", "industry_id")
+  pass

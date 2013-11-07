@@ -21,6 +21,7 @@ def upgrade():
     sa.Column("stock_symbol", sa.String(64)),
     sa.Column("name", sa.String(512)),
     sa.Column("sector_id", sa.Integer, sa.ForeignKey("google_sectors.id")),
+    sa.Column("industry_id", sa.Integer, sa.ForeignKey("google_sectors.id")),
   )
 
 
