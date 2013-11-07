@@ -12,11 +12,14 @@ from finance.items import FinancialStatementItem, GoogleSectorItem, GoogleCompan
 from finance.models import orm
 
 from scrapy import log
+import pymongo
 
 
 class PipelineBaseORM(object):
   def __init__(self):
     self.orm = orm
+    self.mongo_client = pymongo.MongoClient()
+    self.mongo_db = self.mongo_client.finance_db
 
   def change_and_note_attributes(self, thing, **keyword_args):
     for key, arg in keyword_args.iteritems():
@@ -64,13 +67,21 @@ class FinanceDbPipeline(PipelineBaseORM):
       self.orm.session.commit()
 
     elif type(item) == GenericIncomeStatement:
-      print "GenericIncomeStatement:", item
+      item_dict = dict(item)
+      self.mongo_db.financials.insert(item_dict)
+      #print "GenericIncomeStatement:", item_dict
     elif type(item) == GenericBalanceSheet:
-      print "GenericBalanceSheet:", item
+      item_dict = dict(item)
+      self.mongo_db.financials.insert(item_dict)
+      #print "GenericBalanceSheet:", item_dict
     elif type(item) == GenericCashFlowStatement:
-      print "GenericCashFlowStatement:", item
+      item_dict = dict(item)
+      self.mongo_db.financials.insert(item_dict)
+      #print "GenericCashFlowStatement:", item_dict
     elif type(item) == GenericEpsSummary:
-      print "GenericEpsSummary:", item
+      item_dict = dict(item)
+      self.mongo_db.financials.insert(item_dict)
+      #print "GenericEpsSummary:", item_dict
 
     else: log.msg(u"unknown item type {} for item {}".format(type(item), item), level=log.WARNING)
 

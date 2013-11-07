@@ -42,14 +42,14 @@ neg_amt_re = re.compile("\((\d+)\)")
 def get_decimal_from_dollars(dollar_string):
   dollar_string = remove_dollars(remove_commas(dollar_string))
   neg_amt_search = neg_amt_re.search(dollar_string)
-  if neg_amt_search: return Decimal("-{}".format(neg_amt_search.group(1)))
-  else: return Decimal(dollar_string)
+  if neg_amt_search: return float("-{}".format(neg_amt_search.group(1)))
+  else: return float(dollar_string)
 
 def get_multiplier(multiplier_string):
-  return Decimal("1{}".format(remove_commas(multiplier_string)))
+  return float("1{}".format(remove_commas(multiplier_string)))
 
 def get_date(date_string):
-  return datetime.strptime(date_string, '%m/%d/%Y').date()
+  return datetime.strptime(date_string, '%m/%d/%Y')
 
 def convert_date_row(row_data, duration):
   if duration == 2: del row_data[0]
@@ -67,7 +67,7 @@ def get_row_data(rows):
   # remaining data, if any.
   rows = [(row[0], row[1:]) for row in rows if row]
   # Convert to a list of row data keyed by row title.
-  rows = [(key, row_data) for (key, row_data) in rows if row_data]
+  rows = [(key.replace('.',''), row_data) for (key, row_data) in rows if row_data]
   return rows
 
 def get_fundamentals_row_data(rows):
@@ -328,7 +328,7 @@ class GenericNasdaqCompanyFinancialsSpider(BaseSpider):
       data_dict = get_fundamentals_row_data(rows)
       return multiplier, data_dict
     else:
-      return Decimal(0), dict()
+      return float(0), dict()
 
   def get_common_fundamental_data(self, response):
     stock_symbol = response.meta["stock_symbol"]
@@ -385,7 +385,7 @@ class GenericNasdaqCompanyFinancialsSpider(BaseSpider):
     # Keep all EPS quarterly data, identified by date of period end.
     data_rows = [(row[0], row[1]) for row in data_rows if 2 == len(row)]
     # Convert EPS to number, and date string to date.
-    data_rows = [(Decimal(eps), datetime.strptime(date, "(%m/%d/%Y)").date()) for eps, date in data_rows]
+    data_rows = [(float(eps), datetime.strptime(date, "(%m/%d/%Y)")) for eps, date in data_rows]
     return_items = [
       GenericEpsSummary(
         stock_symbol = stock_symbol,
