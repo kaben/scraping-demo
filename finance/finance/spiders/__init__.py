@@ -4,7 +4,7 @@
 # your spiders.
 
 from finance import settings
-from finance.items import FinancialStatementItem, GoogleSectorItem, GoogleCompanyItem, GenericIncomeStatement, GenericBalanceSheet, GenericCashFlowStatement, GenericEpsSummary
+from finance.items import FinancialStatementItem, GoogleSectorItem, GoogleCompanyItem, GenericFinancialStatement, GenericEpsSummary
 from finance.models import orm
 
 from cdecimal import Decimal
@@ -159,18 +159,17 @@ class GenericNasdaqCompanyFinancialsSpider(BaseSpider):
 
   def start_requests(self):
     company_query = orm.session.query(orm.GoogleCompany)
-    durations = (1, 2)
-    financials_parsers = (self.parse_income_statement, self.parse_balance_sheet, self.parse_cash_flow_statement)
     for company in company_query:
       stock_symbol = company.stock_symbol
       stock = stock_symbol.split(':')[-1]
-      for duration in durations:
-        for doc_type, callback in enumerate(financials_parsers):
-          formdata = dict(num_periods = 100, duration = duration, doc_type = doc_type+1, stock = stock, stock_symbol = stock_symbol)
-          yield Request(self.fundamentals_fmt.format(**formdata), meta = formdata, callback=callback)
+      # Durations: 1: quarterly; 2: annual.
+      for duration in (1, 2):
+        # Doc types: 1: income statement; 2: balance sheet; 3: cash flow statement.
+        for doc_type in (1, 2, 3):
+          formdata = dict(num_periods = 100, duration = duration, doc_type = doc_type, stock = stock, stock_symbol = stock_symbol)
+          yield Request(self.fundamentals_fmt.format(**formdata), meta = formdata, callback=self.parse_generic_financials)
       formdata = dict(stock = stock, stock_symbol = stock_symbol, page = 1)
       yield Request(self.redpage_fmt.format(**formdata), meta = formdata, callback=self.parse_eps_summary)
-
 
   def parse_fundamentals_rows(self, response):
     hxs = HtmlXPathSelector(response)
@@ -182,8 +181,8 @@ class GenericNasdaqCompanyFinancialsSpider(BaseSpider):
       # Get all data rows, which have lots of whitespace formatting.
       rows = hxs.select('//table[@class="ipos"]//tr')
       # Clean up the rows, and extract row titles.
-      data_dict = get_fundamentals_row_data(rows)
-      return multiplier, data_dict
+      data = get_fundamentals_row_data(rows)
+      return multiplier, data
     else:
       return float(0), dict()
 
@@ -192,29 +191,18 @@ class GenericNasdaqCompanyFinancialsSpider(BaseSpider):
     duration = response.meta["duration"]
     period_ending_dict = {1:"Quarter Ending:", 2:"Period Ending:"}
     period_ending_key = period_ending_dict[duration]
-    mult, data_dict = self.parse_fundamentals_rows(response)
-    return stock_symbol, duration, period_ending_key, mult, data_dict
+    mult, data = self.parse_fundamentals_rows(response)
+    return stock_symbol, duration, period_ending_key, mult, data
 
-  def handle_generic_statement(self, response, generic_class):
+  def parse_generic_financials(self, response):
     stock_symbol, duration, period_ending_key, mult, data = self.get_common_fundamental_data(response)
-    if data:
-      return generic_class(
+    if data: yield GenericFinancialStatement(
         stock_symbol = stock_symbol,
         duration = duration,
         period_ending_key = period_ending_key,
         mult = mult,
         data = data,
       )
-
-  def parse_income_statement(self, response):
-    item = self.handle_generic_statement(response, GenericIncomeStatement)
-    if item: yield item
-  def parse_balance_sheet(self, response):
-    item = self.handle_generic_statement(response, GenericBalanceSheet)
-    if item: yield item
-  def parse_cash_flow_statement(self, response):
-    item = self.handle_generic_statement(response, GenericCashFlowStatement)
-    if item: yield item
 
   def parse_eps_summary(self, response):
     stock_symbol = response.meta["stock_symbol"]

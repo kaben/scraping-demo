@@ -8,7 +8,7 @@
 # Don't forget to add your pipeline to the ITEM_PIPELINES setting
 # See: http://doc.scrapy.org/en/latest/topics/item-pipeline.html
 
-from finance.items import FinancialStatementItem, GoogleSectorItem, GoogleCompanyItem, GenericIncomeStatement, GenericBalanceSheet, GenericCashFlowStatement, GenericEpsSummary
+from finance.items import FinancialStatementItem, GoogleSectorItem, GoogleCompanyItem, GenericFinancialStatement, GenericEpsSummary
 from finance.models import orm
 
 from scrapy import log
@@ -19,7 +19,7 @@ class PipelineBaseORM(object):
   def __init__(self):
     self.orm = orm
     self.mongo_client = pymongo.MongoClient()
-    self.mongo_db = self.mongo_client.finance_db
+    self.mongo_db = self.mongo_client.finance_db2
 
   def change_and_note_attributes(self, thing, **keyword_args):
     for key, arg in keyword_args.iteritems():
@@ -66,7 +66,7 @@ class FinanceDbPipeline(PipelineBaseORM):
       self.update_attrs_with_notes(financial_statement, **item)
       self.orm.session.commit()
 
-    elif type(item) in (GenericIncomeStatement, GenericBalanceSheet, GenericCashFlowStatement, GenericEpsSummary):
+    elif type(item) in (GenericFinancialStatement, GenericEpsSummary):
       item_dict = dict(item)
       self.mongo_db.financials.insert(item_dict)
 

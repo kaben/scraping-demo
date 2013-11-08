@@ -45,21 +45,7 @@ class FinancialStatementItem(Item):
   # Data from revenue / EPS summary:
   eps = Field()
 
-class GenericIncomeStatement(Item):
-  stock_symbol = Field()
-  duration = Field()
-  period_ending_key = Field()
-  mult = Field()
-  data = Field()
-
-class GenericBalanceSheet(Item):
-  stock_symbol = Field()
-  duration = Field()
-  period_ending_key = Field()
-  mult = Field()
-  data = Field()
-
-class GenericCashFlowStatement(Item):
+class GenericFinancialStatement(Item):
   stock_symbol = Field()
   duration = Field()
   period_ending_key = Field()
