@@ -154,13 +154,17 @@ def get_financials_for(db, stock_symbol_regex):
   l = list(db.financials.find(dict(stock_symbol={"$regex":stock_symbol_regex})))
   return l
 
+def get_statements_from_financial_object(financial_object):
+  financial_data_arrays = fixup_data_and_rename_fields(financial_object['data'], financial_object['mult'])
+  keys, value_arrays = zip(*financial_data_arrays.iteritems())
+  value_sets = zip(*value_arrays)
+  statements = [dict(zip(keys, values)) for values in value_sets]
+  return financial_data_arrays, statements
+
 # Example use:
 # >>> client, db = get_client_db()
 # >>> apple_financials = get_financials_for(db, ".*AAPL")
-# >>> apple_financial = apple_financials[0]
-# >>> apple_financial['data'] = fixup_data_and_rename_fields(apple_financial['data'], apple_financial['mult'])
-# >>> print "Verification status:", verify_data_lengths(apple_financial['data'])
-# >>> keys, value_arrays = zip(*apple_financial['data'].iteritems())
-# >>> value_sets = zip(*value_arrays)
-# >>> apple_financial_statements = [dict(zip(keys, values)) for values in value_sets]
+# >>> apple_financial_object = apple_financials[0]
+# >>> apple_financial_data_arrays, apple_financial_statements = get_statements_from_financial_object(apple_financial_object)
+# >>> print "Verification status:", verify_data_lengths(apple_financial_data_arrays)
 
