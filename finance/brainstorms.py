@@ -159,6 +159,7 @@ def get_financials_for(db, stock_symbol_regex):
 # >>> apple_financials = get_financials_for(db, ".*AAPL")
 # >>> apple_financial = apple_financials[0]
 # >>> apple_financial['data'] = fixup_data_and_rename_fields(apple_financial['data'], apple_financial['mult'])
+# >>> print "Verification status:", verify_data_lengths(apple_financial['data'])
 # >>> keys, value_arrays = zip(*apple_financial['data'].iteritems())
 # >>> value_sets = zip(*value_arrays)
 # >>> apple_financial_statements = [dict(zip(keys, values)) for values in value_sets]
