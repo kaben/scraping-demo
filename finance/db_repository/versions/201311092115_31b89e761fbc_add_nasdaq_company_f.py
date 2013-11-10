@@ -169,6 +169,21 @@ def upgrade():
     sa.Column("total_revenue", sa.Float),
     # u'Treasury Stock',
     sa.Column("treasury_stock", sa.Float),
+
+    # Data from revenue / EPS summary:
+    # u'Earnings Per-Share',
+    sa.Column("eps", sa.Float),
+
+    # Cached computation:
+    # Approximate diluted shares outstanding, computed as shareholder_net_income/eps
+    sa.Column("shares_outstanding", sa.Float),
+    # Ranker stats:
+    sa.Column("gross_margin", sa.Float),
+    sa.Column("net_margin", sa.Float),
+    sa.Column("cash_to_debt_ratio", sa.Float),
+    sa.Column("net_cash", sa.Float),
+    sa.Column("foolish_flow_ratio", sa.Float),
+    sa.Column("cash_king_margin", sa.Float),
   )
 
 def downgrade():
