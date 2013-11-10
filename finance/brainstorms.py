@@ -307,19 +307,12 @@ def get_sql_lookup_keys_and_update_dict(statement, orm):
   )
   return lookup_keys, sql_dict
 
-def lookup_nasdaq_financials_by(lookup_keys, orm):
-  return orm.get_or_create(orm.NasdaqCompanyFinancials, **lookup_keys)
-
-def update_nasdaq_financials_with(sql_dict, nasdaq_financials):
-  for k, v in sql_dict.iteritems(): setattr(nasdaq_financials, k, v)
-
 def copy_financial_statement_to_nasdaq_financials(statement, orm):
   try:
     lookup_keys, update_dict = get_sql_lookup_keys_and_update_dict(statement, orm)
-    nasdaq_financials = lookup_nasdaq_financials_by(lookup_keys, orm)
-    update_nasdaq_financials_with(update_dict, nasdaq_financials)
+    orm.get_or_create_and_update(orm.NasdaqCompanyFinancials, lookup_keys, update_dict)
   except Exception as e:
-    print "Error while copying financial statement ({}) to nasdaq_financials sql table ({}).".format(nasdaq_financials, e)
+    print "Error copying financial statement {} to sql table ({}).".format(nasdaq_financials, e)
 
 def transfer_nasdaq_financials_to_sql(db, orm):
   collection_names = (
