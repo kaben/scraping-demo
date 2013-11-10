@@ -1,5 +1,6 @@
 import pymongo
 import datetime, re
+import finance.models
 
 # Data cleanup functions.
 def remove_first_element(l, _):
@@ -204,7 +205,124 @@ def drop_processed_statements(db):
   db.annual_balance_sheets.drop()
   db.annual_cash_flow_statements.drop()
   db.eps_summaries.drop()
-  
+
+sql_financial_colmap = dict([
+  (u"Period ending", u"period_ending"),
+  (u"Quarter ending", u"quarter_ending"),
+  (u"Accounting changes", u"accounting_changes"),
+  (u"Accounts payable", u"accounts_payable"),
+  (u"Accounts receivable", u"accounts_receivable"),
+  (u"Accumulated amortization", u"accumulated_amortization"),
+  (u"Additional income/expense items", u"additional_income_or_expense_items"),
+  (u"Adjustments to net income", u"adjustments_to_net_income"),
+  (u"Capital expenditures", u"capital_expenditures"),
+  (u"Capital surplus", u"capital_surpolus"),
+  (u"Cash and cash equivalents", u"cash_and_equivalents"),
+  (u"Common stocks", u"common_stocks"),
+  (u"Cost of Revenue", u"cost_of_revenue"),
+  (u"Deferred asset charges", u"deferred_asset_charges"),
+  (u"Deferred liability charges", u"deferred_liability_charges"),
+  (u"Depreciation", u"depreciation"),
+  (u"Discontinued operations", u"discontinued_operations"),
+  (u"Dividends paid", u"dividends_paid"),
+  (u"Earnings before interest and tax", u"earnings_before_interest_and_tax"),
+  (u"Earnings before tax", u"earnings_before_tax"),
+  (u"Effect of exchange rate", u"effect_of_exchange_rate"),
+  (u"Equity earnings unconsolidated subsidiary", u"equity_earnings_unconsolidated_subsidiary"),
+  (u"Extraordinary items", u"extraordinary_items"),
+  (u"Fixed assets", u"fixed_assets"),
+  (u"Goodwill", u"goodwill"),
+  (u"Gross profit", u"gross_profit"),
+  (u"Income tax", u"income_tax"),
+  (u"Intangible assets", u"intangible_assets"),
+  (u"Interest expense", u"interest_expense"),
+  (u"Inventory", u"inventory"),
+  (u"Investments", u"investments"),
+  (u"Liabilities", u"liabilities"),
+  (u"Long term debt", u"long_term_debt"),
+  (u"Long term investments", u"long_term_investments"),
+  (u"Minority interest", u"minority_interest"),
+  (u"Misc stocks", u"misc_stocks"),
+  (u"Negative goodwill", u"negative_goodwill"),
+  (u"Net borrowings", u"net_borrowing"),
+  (u"Net cash flow", u"net_cash_flow"),
+  (u"Net cash flow, operating", u"net_operating_cash_flow"),
+  (u"Net cash flow from financing", u"net_cash_flow_from_financing"),
+  (u"Net cash flow from investing", u"net_cash_flow_from_investing"),
+  (u"Net income", u"net_income"),
+  (u"Net income adjustments", u"net_income_adjustments"),
+  (u"Net income applicable to common chareholders", u"shareholder_net_income"),
+  (u"Net income from continuing operations", u"net_income_from_continuing_operations"),
+  (u"Net receivables", u"net_receivables"),
+  (u"Non-recurring items", u"non_recurring_items"),
+  (u"Operating income", u"operating_income"),
+  (u"Other assets", u"other_assets"),
+  (u"Other current assets", u"other_current_assets"),
+  (u"Other current liabilities", u"other_current_liabilities"),
+  (u"Other equity", u"other_equity"),
+  (u"Other financing activities", u"other_financing_activities"),
+  (u"Other investing activities", u"other_investing_activities"),
+  (u"Other items", u"other_items"),
+  (u"Other liabilities", u"other_liabilities"),
+  (u"Other operating activities", u"other_operating_activities"),
+  (u"Other operating items", u"other_operating_items"),
+  (u"Preferred stocks", u"preferred_stocks"),
+  (u"Redeemable stocks", u"redeemable_stocks"),
+  (u"Research and development", u"research_and_development"),
+  (u"Retained earnings", u"retained_earnings"),
+  (u"Sale and purchase of stock", u"sale_and_purchase_of_stock"),
+  (u"Sales, general and admin", u"sales_general_and_admin"),
+  (u"Short-term debt and current portion of long-term debt", u"short_term_debt"),
+  (u"Short term investments", u"short_term_investments"),
+  (u"Total assets", u"total_assets"),
+  (u"Total current assets", u"total_current_assets"),
+  (u"Total current liabilities", u"total_current_liabilities"),
+  (u"Total equity", u"total_equity"),
+  (u"Total liabilities", u"total_liabilities"),
+  (u"Total revenue", u"total_revenue"),
+  (u"Treasury stock", u"treasury_stock"),
+])
+quarter_fixups = {u'1st':1, u'2nd':2, u'3rd':3, u'4th':4}
+
+def convert_statement_to_sql_dict(statement):
+  return dict((sql_financial_colmap[k], v) for k, v in statement.iteritems() if k in sql_financial_colmap)
+
+def get_google_company_for_stock_symbol(stock_symbol, orm):
+  return orm.session.query(orm.GoogleCompany).filter(orm.GoogleCompany.stock_symbol == stock_symbol).one()
+
+def get_sql_lookup_keys_and_update_dict(statement, orm):
+  sql_dict = convert_statement_to_sql_dict(statement)
+  if u'quarter' in sql_dict:
+    quarter_string = sql_dict[u'quarter']
+    sql_dict[u'quarter'] = quarter_fixups[quarter_string]
+  google_company = get_google_company_for_stock_symbol(statement[u'Stock symbol'], orm)
+  for ending_key in (u'period_ending', u'quarter_ending'):
+    sql_dict[ending_key] = sql_dict[ending_key].date() if ending_key in sql_dict else None
+  period_ending = sql_dict[u'period_ending']
+  quarter_ending = sql_dict[u'quarter_ending']
+  lookup_keys = dict(
+    company = google_company,
+    period_ending = period_ending,
+    quarter_ending = quarter_ending,
+  )
+  return lookup_keys, sql_dict
+
+def lookup_nasdaq_financials_by(lookup_keys, orm):
+  return orm.get_or_create(orm.NasdaqCompanyFinancials, **lookup_keys)
+
+def update_nasdaq_financials_with(sql_dict, nasdaq_financials):
+  for k, v in sql_dict.iteritems(): setattr(nasdaq_financials, k, v)
+
+def copy_financial_statement_to_nasdaq_financials(statement, orm):
+  try:
+    lookup_keys, update_dict = get_sql_lookup_keys_and_update_dict(statement, orm)
+    nasdaq_financials = lookup_nasdaq_financials_by(lookup_keys, orm)
+    update_nasdaq_financials_with(update_dict, nasdaq_financials)
+    orm.session.commit()
+  except Exception as e:
+    orm.session.rollback()
+    print "Error while copying financial statement ({}) to nasdaq_financials sql table ({}).".format(nasdaq_financials, e)
+
 # Example use:
 # >>> client, db = get_client_db()
 # >>> query = dict(stock_symbol={"$regex":".*AAPL"})
@@ -216,3 +334,11 @@ def drop_processed_statements(db):
 
 # Idea:
 # >>> qtr_inc, qtr_bal_sheet, qtr_cash_flow, ann_inc, ann_bal_sheet, ann_cash_flow = financials[:6]
+
+# >>> for stock_symbol in stock_symbols:
+# ...     query = dict(stock_symbol=stock_symbol)
+# ...     print "processing statements for {}".format(stock_symbol)
+# ...     process_statements_for(db, query)
+
+# >>> for stmt in db.quarterly_income_statements.find():
+# ...     copy_financial_statement_to_nasdaq_financials(stmt, orm)

@@ -38,7 +38,10 @@ orm_defs = dict(
     ),
   ),
   CompanyFinancials = dict(__tablename__ = "company_financials"),
-  NasdaqCompanyFinancials = dict(__tablename__ = "nasdaq_company_financials"),
+  NasdaqCompanyFinancials = dict(
+    __tablename__ = "nasdaq_company_financials",
+    company = relationship("GoogleCompany", backref="nasdaq_financials"),
+  ),
 )
 orm = ORM(orm_defs, SQLALCHEMY_URL)
 
