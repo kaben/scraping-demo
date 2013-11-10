@@ -318,10 +318,31 @@ def copy_financial_statement_to_nasdaq_financials(statement, orm):
     lookup_keys, update_dict = get_sql_lookup_keys_and_update_dict(statement, orm)
     nasdaq_financials = lookup_nasdaq_financials_by(lookup_keys, orm)
     update_nasdaq_financials_with(update_dict, nasdaq_financials)
-    orm.session.commit()
   except Exception as e:
-    orm.session.rollback()
     print "Error while copying financial statement ({}) to nasdaq_financials sql table ({}).".format(nasdaq_financials, e)
+
+def transfer_nasdaq_financials_to_sql(db, orm):
+  collection_names = (
+    u'quarterly_income_statements',
+    u'quarterly_balance_sheets',
+    u'quarterly_cash_flow_statements',
+    u'annual_income_statements',
+    u'annual_balance_sheets',
+    u'annual_cash_flow_statements',
+  )
+  counter = 0
+  for collection_name in collection_names:
+    for stmt in db[collection_name].find():
+      print "Copying financial statement for ({stock_symbol}) to sql...".format(stock_symbol=stmt[u'Stock symbol'])
+      copy_financial_statement_to_nasdaq_financials(stmt, orm)
+      counter += 1
+      if 0 == counter % 200:
+        print "Committing 200 changes to sql..."
+        orm.session.commit()
+
+# >>> for stmt in db.quarterly_income_statements.find():
+# ...     copy_financial_statement_to_nasdaq_financials(stmt, orm)
+  
 
 # Example use:
 # >>> client, db = get_client_db()
