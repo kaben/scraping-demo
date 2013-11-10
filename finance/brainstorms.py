@@ -43,81 +43,81 @@ def fixup_data(data, multiplier):
 
 # Field name cleanup.
 field_renames = dict([
-  (u'Net Cash Flow-Operating', u'Net cash flow, operating'),
-  (u'Other Operating Items', u'Other operating items'),
-  (u'Net Income Applicable to', u'Net income applicable to common chareholders'),
-  (u'Common Stocks', u'Common stocks'),
-  (u'Capital Expenditures', u'Capital expenditures'),
-  (u'Short Term Debt/Current Portion of Long Term Debt', u'Short-term debt and current portion of long-term debt'),
-  (u'Preferred Stocks', u'Preferred stocks'),
-  (u'Cost of Revenue', u'Cost of Revenue'),
-  (u'Accumulated Amortization', u'Accumulated amortization'),
-  (u'Other Current Liabilities', u'Other current liabilities'),
-  (u'Other Current Assets', u'Other current assets'),
-  (u'Inventory', u'Inventory'),
-  (u'Equity Earnings Unconsolidated Subsidiary', u'Equity earnings unconsolidated subsidiary'),
-  (u'Total Current Liabilities', u'Total current liabilities'),
-  (u'Interest Expense', u'Interest expense'),
-  (u'Deferred Asset Charges', u'Deferred asset charges'),
-  (u'Other Financing Activities', u'Other financing activities'),
-  (u'Retained Earnings', u'Retained earnings'),
-  (u'Long Term Debt', u'Long term debt'),
-  (u'Effect of Exchange Rate', u'Effect of exchange rate'),
-  (u'Research and Development', u'Research and development'),
-  (u'Redeemable Stocks', u'Redeemable stocks'),
-  (u'Quarter:', u'Quarter'),
-  (u'Net Cash Flow', u'Net cash flow'),
-  (u'Net Cash Flows-Investing', u'Net cash flow from investing'),
-  (u'Other Items', u'Other items'),
-  (u'Investments', u'Investments'),
-  (u'Misc Stocks', u'Misc stocks'),
-  (u'Sales, General and Admin', u'Sales, general and admin'),
-  (u'Long Term Investments', u'Long term investments'),
-  (u'Discontinued Operations', u'Discontinued operations'),
-  (u'Negative Goodwill', u'Negative goodwill'),
-  (u'Net Income Adjustments', u'Net income adjustments'),
-  (u'Net Borrowings', u'Net borrowings'),
-  (u'Quarter Ending:', u'Quarter ending'),
-  (u'Other Operating Activities', u'Other operating activities'),
-  (u'Sale and Purchase of Stock', u'Sale and purchase of stock'),
-  (u'Total Revenue', u'Total revenue'),
-  (u'Deferred Liability Charges', u'Deferred liability charges'),
-  (u'Income Tax', u'Income tax'),
-  (u'Non-Recurring Items', u'Non-recurring items'),
-  (u'Total Liabilities', u'Total liabilities'),
-  (u'Goodwill', u'Goodwill'),
-  (u'Net Cash Flows-Financing', u'Net cash flow from financing'),
-  (u'Period Ending:', u'Period ending'),
-  (u'Other Assets', u'Other assets'),
-  (u'Gross Profit', u'Gross profit'),
-  (u'Net Receivables', u'Net receivables'),
-  (u'Minority Interest', u'Minority interest'),
-  (u'Cash and Cash Equivalents', u'Cash and cash equivalents'),
-  (u'Accounts Payable', u'Accounts payable'),
-  (u'Short Term Investments', u'Short term investments'),
-  (u'Accounts Receivable', u'Accounts receivable'),
-  (u'Depreciation', u'Depreciation'),
-  (u'Operating Income', u'Operating income'),
-  (u'Earnings Before Interest and Tax', u'Earnings before interest and tax'),
-  (u'Total Current Assets', u'Total current assets'),
-  (u'Capital Surplus', u'Capital surplus'),
-  (u'Liabilities', u'Liabilities'),
-  (u'Extraordinary Items', u'Extraordinary items'),
-  (u'Dividends Paid', u'Dividends paid'),
   (u'Accounting Changes', u'Accounting changes'),
+  (u'Accounts Payable', u'Accounts payable'),
+  (u'Accounts Receivable', u'Accounts receivable'),
+  (u'Accumulated Amortization', u'Accumulated amortization'),
   (u"Add'l income/expense items", u"Additional income/expense items"),
-  (u'Treasury Stock', u'Treasury stock'),
-  (u'Other Investing Activities', u'Other investing activities'),
-  (u'Total Equity', u'Total equity'),
-  (u'Intangible Assets', u'Intangible assets'),
   (u'Adjustments to Net Income', u'Adjustments to net income'),
-  (u'Total Assets', u'Total assets'),
-  (u'Net Income', u'Net income'),
+  (u'Capital Expenditures', u'Capital expenditures'),
+  (u'Capital Surplus', u'Capital surplus'),
+  (u'Cash and Cash Equivalents', u'Cash and cash equivalents'),
+  (u'Common Stocks', u'Common stocks'),
+  (u'Cost of Revenue', u'Cost of Revenue'),
+  (u'Deferred Asset Charges', u'Deferred asset charges'),
+  (u'Deferred Liability Charges', u'Deferred liability charges'),
+  (u'Depreciation', u'Depreciation'),
+  (u'Discontinued Operations', u'Discontinued operations'),
+  (u'Dividends Paid', u'Dividends paid'),
+  (u'Earnings Before Interest and Tax', u'Earnings before interest and tax'),
   (u'Earnings Before Tax', u'Earnings before tax'),
-  (u'Other Equity', u'Other equity'),
-  (u'Net Income-Cont Operations', u'Net income from continuing operations'),
-  (u'Other Liabilities', u'Other liabilities'),
+  (u'Effect of Exchange Rate', u'Effect of exchange rate'),
+  (u'Equity Earnings Unconsolidated Subsidiary', u'Equity earnings unconsolidated subsidiary'),
+  (u'Extraordinary Items', u'Extraordinary items'),
   (u'Fixed Assets', u'Fixed assets'),
+  (u'Goodwill', u'Goodwill'),
+  (u'Gross Profit', u'Gross profit'),
+  (u'Income Tax', u'Income tax'),
+  (u'Intangible Assets', u'Intangible assets'),
+  (u'Interest Expense', u'Interest expense'),
+  (u'Inventory', u'Inventory'),
+  (u'Investments', u'Investments'),
+  (u'Liabilities', u'Liabilities'),
+  (u'Long Term Debt', u'Long term debt'),
+  (u'Long Term Investments', u'Long term investments'),
+  (u'Minority Interest', u'Minority interest'),
+  (u'Misc Stocks', u'Misc stocks'),
+  (u'Negative Goodwill', u'Negative goodwill'),
+  (u'Net Borrowings', u'Net borrowings'),
+  (u'Net Cash Flow-Operating', u'Net cash flow, operating'),
+  (u'Net Cash Flows-Financing', u'Net cash flow from financing'),
+  (u'Net Cash Flows-Investing', u'Net cash flow from investing'),
+  (u'Net Cash Flow', u'Net cash flow'),
+  (u'Net Income Adjustments', u'Net income adjustments'),
+  (u'Net Income Applicable to', u'Net income applicable to common chareholders'),
+  (u'Net Income-Cont Operations', u'Net income from continuing operations'),
+  (u'Net Income', u'Net income'),
+  (u'Net Receivables', u'Net receivables'),
+  (u'Non-Recurring Items', u'Non-recurring items'),
+  (u'Operating Income', u'Operating income'),
+  (u'Other Assets', u'Other assets'),
+  (u'Other Current Assets', u'Other current assets'),
+  (u'Other Current Liabilities', u'Other current liabilities'),
+  (u'Other Equity', u'Other equity'),
+  (u'Other Financing Activities', u'Other financing activities'),
+  (u'Other Investing Activities', u'Other investing activities'),
+  (u'Other Items', u'Other items'),
+  (u'Other Liabilities', u'Other liabilities'),
+  (u'Other Operating Activities', u'Other operating activities'),
+  (u'Other Operating Items', u'Other operating items'),
+  (u'Period Ending:', u'Period ending'),
+  (u'Preferred Stocks', u'Preferred stocks'),
+  (u'Quarter Ending:', u'Quarter ending'),
+  (u'Quarter:', u'Quarter'),
+  (u'Redeemable Stocks', u'Redeemable stocks'),
+  (u'Research and Development', u'Research and development'),
+  (u'Retained Earnings', u'Retained earnings'),
+  (u'Sale and Purchase of Stock', u'Sale and purchase of stock'),
+  (u'Sales, General and Admin', u'Sales, general and admin'),
+  (u'Short Term Debt/Current Portion of Long Term Debt', u'Short-term debt and current portion of long-term debt'),
+  (u'Short Term Investments', u'Short term investments'),
+  (u'Total Assets', u'Total assets'),
+  (u'Total Current Assets', u'Total current assets'),
+  (u'Total Current Liabilities', u'Total current liabilities'),
+  (u'Total Equity', u'Total equity'),
+  (u'Total Liabilities', u'Total liabilities'),
+  (u'Total Revenue', u'Total revenue'),
+  (u'Treasury Stock', u'Treasury stock'),
 ])
 def rename_fields(data):
   "Renames fieldnames."
@@ -150,8 +150,8 @@ def get_data_fields(db):
   data_fields = dict((key, statement['data'][key]) for statement in db.financials.find() if 'data' in statement for key in statement['data'].keys())
   return data_fields
 
-def get_financials_for(db, stock_symbol_regex):
-  l = list(db.financials.find(dict(stock_symbol={"$regex":stock_symbol_regex})))
+def get_financials_for(db, query):
+  l = list(db.financials.find(dict(**query)))
   return l
 
 def get_statements_from_financial_object(financial_object):
@@ -159,12 +159,60 @@ def get_statements_from_financial_object(financial_object):
   keys, value_arrays = zip(*financial_data_arrays.iteritems())
   value_sets = zip(*value_arrays)
   statements = [dict(zip(keys, values)) for values in value_sets]
+  updates_dict = {
+    u'Stock symbol':financial_object['stock_symbol'],
+    u'Dollar multiplier when scraped':financial_object['mult'],
+  }
+  for statement in statements: statement.update(updates_dict)
   return financial_data_arrays, statements
 
+def insert_data_dicts_in(collection, data_dicts):
+  for data_dict in data_dicts: collection.insert(data_dict)
+
+def extract_and_insert_statements(collection, financial_object):
+  stock_symbol = financial_object['stock_symbol']
+  if 'data' in financial_object:
+    data_arrays, statements = get_statements_from_financial_object(financial_object)
+    if verify_data_lengths(data_arrays):
+      insert_data_dicts_in(collection, statements)
+    else:
+      raise ValueError("Bad financial data for stock {} (number of data rows should be the same for each column, but isn't).".format(stock_symbol))
+  else:
+    print "No financial data for stock {} (this usually means Nasdaq had no data available for the company).".format(stock_symbol)
+
+def process_statements_for(db, query):
+  financials = get_financials_for(db, query)
+  if financials:
+    try:
+      qtr_inc, qtr_bal_sheet, qtr_cash_flow, ann_inc, ann_bal_sheet, ann_cash_flow = financials[:6]
+      eps_summaries = financials[6:]
+      extract_and_insert_statements(db.quarterly_income_statements, qtr_inc)
+      extract_and_insert_statements(db.quarterly_balance_sheets, qtr_bal_sheet)
+      extract_and_insert_statements(db.quarterly_cash_flow_statements, qtr_cash_flow)
+      extract_and_insert_statements(db.annual_income_statements, ann_inc)
+      extract_and_insert_statements(db.annual_balance_sheets, ann_bal_sheet)
+      extract_and_insert_statements(db.annual_cash_flow_statements, ann_cash_flow)
+      insert_data_dicts_in(db.eps_summaries, eps_summaries)
+    except Exception as e:
+      print "Couldn't process statements for query '{}' ({}).".format(query, e) 
+    
+def drop_processed_statements(db):
+  db.quarterly_income_statements.drop()
+  db.quarterly_balance_sheets.drop()
+  db.quarterly_cash_flow_statements.drop()
+  db.annual_income_statements.drop()
+  db.annual_balance_sheets.drop()
+  db.annual_cash_flow_statements.drop()
+  db.eps_summaries.drop()
+  
 # Example use:
 # >>> client, db = get_client_db()
-# >>> apple_financials = get_financials_for(db, ".*AAPL")
-# >>> apple_financial_object = apple_financials[0]
-# >>> apple_financial_data_arrays, apple_financial_statements = get_statements_from_financial_object(apple_financial_object)
-# >>> print "Verification status:", verify_data_lengths(apple_financial_data_arrays)
+# >>> query = dict(stock_symbol={"$regex":".*AAPL"})
+# >>> query = dict(stock_symbol=u"NASDAQ:AAPL")
+# >>> financials = get_financials_for(db, query)
+# >>> financial_object = financials[0]
+# >>> financial_data_arrays, financial_statements = get_statements_from_financial_object(financial_object)
+# >>> print "Verification status:", verify_data_lengths(financial_data_arrays)
 
+# Idea:
+# >>> qtr_inc, qtr_bal_sheet, qtr_cash_flow, ann_inc, ann_bal_sheet, ann_cash_flow = financials[:6]
