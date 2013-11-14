@@ -15,6 +15,7 @@ from scrapy.selector import HtmlXPathSelector
 from scrapy.spider import BaseSpider
 from scrapy import log
 
+import codecs
 from datetime import datetime
 from urlparse import parse_qs, urlparse
 import re
@@ -244,14 +245,18 @@ class GoogleFinanceHistoricPricesSpider(CSVFeedSpider):
 
   def start_requests(self):
     company_query = orm.session.query(orm.GoogleCompany)
-    for company in company_query.limit(1):
+    for company in company_query:
       formdata = dict(stock_symbol=company.stock_symbol)
       yield Request(self.historic_fmt.format(**formdata), meta=formdata)
+
+  def adapt_response(self, response):
+    return response.replace(body=response.body.replace(codecs.BOM_UTF8, ''))
 
   def parse_row(self, response, row):
     item = GoogleHistoricPriceItem()
     item["stock_symbol"] = response.meta["stock_symbol"]
-    item["date"] = row["date"]
+    date_str = row["date"]
+    item["date"] = date_str if date_str == u"Date" else datetime.strptime(row["date"].encode("utf-8"), '%d-%b-%y')
     item["open"] = row["open"]
     item["high"] = row["high"]
     item["low"] = row["low"]
