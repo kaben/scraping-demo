@@ -42,6 +42,10 @@ orm_defs = dict(
     __tablename__ = "nasdaq_company_financials",
     company = relationship("GoogleCompany", backref="nasdaq_financials"),
   ),
+  GoogleHistoricPrice = dict(
+    __tablename__ = "google_historic_prices",
+    company = relationship("GoogleCompany", backref="historic_prices"),
+  ),
 )
 orm = ORM(orm_defs, SQLALCHEMY_URL)
 

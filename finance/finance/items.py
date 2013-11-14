@@ -57,3 +57,13 @@ class GenericEpsSummary(Item):
   duration = Field()
   period_ending = Field()
   eps = Field()
+
+class GoogleHistoricPriceItem(Item):
+  stock_symbol = Field()
+  date = Field()
+  open = Field()
+  high = Field()
+  low = Field()
+  close = Field()
+  volume = Field()
+

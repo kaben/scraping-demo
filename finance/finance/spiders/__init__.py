@@ -4,11 +4,12 @@
 # your spiders.
 
 from finance import settings
-from finance.items import FinancialStatementItem, GoogleSectorItem, GoogleCompanyItem, GenericFinancialStatement, GenericEpsSummary
+from finance.items import FinancialStatementItem, GoogleSectorItem, GoogleCompanyItem, GenericFinancialStatement, GenericEpsSummary, GoogleHistoricPriceItem
 from finance.models import orm
 
 from cdecimal import Decimal
 
+from scrapy.contrib.spiders import CSVFeedSpider
 from scrapy.http import Request, FormRequest
 from scrapy.selector import HtmlXPathSelector
 from scrapy.spider import BaseSpider
@@ -167,9 +168,9 @@ class GenericNasdaqCompanyFinancialsSpider(BaseSpider):
         # Doc types: 1: income statement; 2: balance sheet; 3: cash flow statement.
         for doc_type in (1, 2, 3):
           formdata = dict(num_periods = 100, duration = duration, doc_type = doc_type, stock = stock, stock_symbol = stock_symbol)
-          yield Request(self.fundamentals_fmt.format(**formdata), meta = formdata, callback=self.parse_generic_financials)
+          yield Request(self.fundamentals_fmt.format(**formdata), meta=formdata, callback=self.parse_generic_financials)
       formdata = dict(stock = stock, stock_symbol = stock_symbol, page = 1)
-      yield Request(self.redpage_fmt.format(**formdata), meta = formdata, callback=self.parse_eps_summary)
+      yield Request(self.redpage_fmt.format(**formdata), meta=formdata, callback=self.parse_eps_summary)
 
   def parse_fundamentals_rows(self, response):
     hxs = HtmlXPathSelector(response)
@@ -234,3 +235,26 @@ class GenericNasdaqCompanyFinancialsSpider(BaseSpider):
       return_items.append(Request(self.redpage_fmt.format(**formdata), meta=formdata, callback=self.parse_eps_summary))
     return return_items
 
+
+class GoogleFinanceHistoricPricesSpider(CSVFeedSpider):
+  name = "google_finance_historic_prices"
+  historic_fmt = "http://www.google.com/finance/historical?q={stock_symbol}&startdate=Jan+1%2C+1970&output=csv"
+  delimiters = ","
+  headers = ["date", "open", "high", "low", "close", "volume"]
+
+  def start_requests(self):
+    company_query = orm.session.query(orm.GoogleCompany)
+    for company in company_query.limit(1):
+      formdata = dict(stock_symbol=company.stock_symbol)
+      yield Request(self.historic_fmt.format(**formdata), meta=formdata)
+
+  def parse_row(self, response, row):
+    item = GoogleHistoricPriceItem()
+    item["stock_symbol"] = response.meta["stock_symbol"]
+    item["date"] = row["date"]
+    item["open"] = row["open"]
+    item["high"] = row["high"]
+    item["low"] = row["low"]
+    item["close"] = row["close"]
+    item["volume"] = row["volume"]
+    return item
